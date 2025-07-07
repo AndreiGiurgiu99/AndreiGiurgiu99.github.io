@@ -1,53 +1,47 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Barcode Scanner to Google Sheets</title>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <script src="html5-qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
-  <h1>Scan Barcode</h1>
-
+  <h1>Scan a Barcode</h1>
   <div id="reader" style="width:300px;"></div>
-  <p id="result">Result will appear here</p>
+  <p id="result">Scan result will appear here.</p>
 
   <script>
-
-
-    const sheetAPI = "AKfycbyyCsbaPghrYUrL3DKO1plSOEdZ_XoExHNAR3VjdraQPiEmHiTgGDdD8cOnpK7q_qId"; // <-- Paste your Apps Script web app URL
+    const sheetAPI = "https://script.google.com/macros/s/AKfycbyyCsbaPghrYUrL3DKO1plSOEdZ_XoExHNAR3VjdraQPiEmHiTgGDdD8cOnpK7q_qId/exec";
 
     function sendBarcode(barcode) {
       fetch(sheetAPI, {
         method: "POST",
-        body: JSON.stringify({ barcode: barcode }),
-        headers: { "Content-Type": "application/json" }
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ barcode: barcode })
       })
       .then(res => res.json())
-      .then(response => {
-        document.getElementById('result').innerText = 
-          `Success: ${barcode}`;
+      .then(data => {
+        document.getElementById("result").innerText = "Saved: " + barcode;
       })
       .catch(err => {
-        document.getElementById('result').innerText = 
-          `Error: ${err}`;
+        document.getElementById("result").innerText = "Error: " + err;
       });
     }
 
     function onScanSuccess(decodedText) {
-      document.getElementById('result').innerText = `Scanned: ${decodedText}`;
       sendBarcode(decodedText);
     }
 
     const html5QrCode = new Html5Qrcode("reader");
-    const qrCodeScannerConfig = { fps: 10, qrbox: 250 };
-
     html5QrCode.start(
       { facingMode: "environment" },
-      qrCodeScannerConfig,
+      { fps: 10, qrbox: 250 },
       onScanSuccess
     ).catch(err => {
-      document.getElementById('result').innerText = `Error: ${err}`;
+      document.getElementById("result").innerText = "Camera error: " + err;
     });
   </script>
 </body>
