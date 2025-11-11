@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barcode Scanner</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #111;
+      color: #fff;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+    video {
+      width: 100%;
+      max-width: 480px;
+      border-radius: 12px;
+      margin-top: 1rem;
+    }
+    #result {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      background: #222;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>📷 Barcode Scanner</h1>
+  <video id="video" autoplay playsinline></video>
+  <div id="result">Waiting for barcode...</div>
+
+  <script>
+    const video = document.getElementById("video");
+    const result = document.getElementById("result");
+
+    // 1. Check for support
+    if (!("BarcodeDetector" in window)) {
+      result.textContent = "Barcode Detection API not supported on this browser.";
+    } else {
+      // 2. Supported barcode formats
+      const formats = [
+        "code_128",
+        "ean_13",
+        "ean_8",
+        "qr_code",
+        "upc_a",
+        "upc_e",
+        "code_39",
+        "itf",
+        "codabar",
+        "data_matrix",
+        "pdf417"
+      ];
+
+      const detector = new BarcodeDetector({ formats });
+
+      // 3. Start video stream
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then((stream) => {
+          video.srcObject = stream;
+          requestAnimationFrame(scan);
+        })
+        .catch((err) => {
+          result.textContent = "Camera access denied: " + err.message;
+        });
+
+      // 4. Scan loop
+      async function scan() {
+        try {
+          const barcodes = await detector.detect(video);
+          if (barcodes.length > 0) {
+            const code = barcodes[0].rawValue;
+            result.textContent = `✅ Barcode detected: ${code}`;
+            // Optionally, stop scanning after detection:
+            // video.srcObject.getTracks().forEach(t => t.stop());
+            // return;
+          }
+        } catch (err) {
+          console.error(err);
+        }
+        requestAnimationFrame(scan);
+      }
+    }
+  </script>
+</body>
+</html>
